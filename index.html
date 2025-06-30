@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeri Foto Vertikal Transparan (Tema Gelap)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS untuk memastikan font Inter dan styling tambahan */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a; /* Warna latar belakang sangat gelap */
+            color: #e0e0e0; /* Warna teks terang */
+            scroll-behavior: smooth; /* Membuat gulir halaman lebih halus */
+        }
+
+        /* Gaya untuk setiap bagian foto */
+        .photo-section {
+            min-height: 85vh; /* Setiap bagian mengambil sebagian besar tinggi viewport */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            opacity: 0; /* Awalnya sembunyikan untuk fade-in */
+            transform: translateY(50px); /* Geser sedikit ke bawah untuk fade-in */
+            transition: opacity 1.2s ease-out, transform 1.2s ease-out; /* Transisi halus untuk fade-in */
+            max-width: 960px; /* Batasi lebar maksimum */
+            margin-left: auto;
+            margin-right: auto;
+            position: relative; /* Penting untuk efek parallax pada children */
+            overflow: hidden; /* Sembunyikan jika ada elemen parallax yang keluar */
+        }
+
+        /* Kelas yang ditambahkan JavaScript saat elemen terlihat */
+        .photo-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .photo-section img {
+            max-width: 100%;
+            max-height: 70vh; /* Batasi tinggi gambar agar sesuai */
+            border-radius: 1rem; /* Sudut membulat pada gambar */
+            object-fit: contain; /* Menjaga rasio aspek */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Bayangan pada gambar tetap ada */
+            will-change: transform; /* Hint untuk browser agar mengoptimalkan animasi */
+            /* Transisi untuk parallax tidak di sini, ditangani langsung oleh JS */
+        }
+
+        .photo-section h2 {
+            margin-top: 1.5rem;
+            font-size: 2.25rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            color: #f0f0f0; /* Warna teks utama tetap terang */
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5); /* Tambahkan shadow untuk visibilitas di atas gambar gelap */
+            will-change: transform; /* Hint untuk browser agar mengoptimalkan animasi */
+        }
+
+        .photo-section p {
+            margin-top: 0.5rem;
+            font-size: 1.125rem; /* text-lg */
+            color: #b0b0b0; /* Warna teks deskripsi tetap */
+            text-align: center;
+            max-width: 700px;
+            text-shadow: 0 0 8px rgba(0,0,0,0.5); /* Tambahkan shadow untuk visibilitas */
+            will-change: transform; /* Hint untuk browser agar mengoptimalkan animasi */
+        }
+
+        /* Menyesuaikan margin untuk bagian pertama agar tidak terlalu dekat dengan header */
+        .photo-section:first-of-type {
+            margin-top: 2rem; /* Jarak dari header */
+        }
+
+        /* Menyesuaikan margin untuk bagian terakhir agar tidak terlalu dekat dengan footer */
+        .photo-section:last-of-type {
+            margin-bottom: 4rem; /* Jarak dari footer */
+        }
+
+        /* Responsif untuk layar kecil */
+        @media (max-width: 768px) {
+            .photo-section {
+                padding: 1rem 0.5rem;
+                min-height: 75vh;
+                margin-bottom: 2rem;
+            }
+            .photo-section h2 {
+                font-size: 1.75rem; /* text-2xl */
+            }
+            .photo-section p {
+                font-size: 1rem; /* text-base */
+            }
+            .photo-section img {
+                max-height: 60vh;
+            }
+        }
+
+        /* Modal Lightbox Styling */
+        .lightbox-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9); /* Overlay gelap */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100; /* Di atas semua konten lain */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            cursor: pointer; /* Menunjukkan bisa diklik untuk menutup */
+        }
+
+        .lightbox-modal.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-content {
+            position: relative;
+            background-color: #2a2a2a; /* Latar belakang modal */
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto; /* Jika gambar lebih besar dari modal */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: default; /* Kembali ke kursor default di dalam konten */
+        }
+
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 75vh; /* Batasi tinggi gambar dalam modal */
+            object-fit: contain;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .lightbox-content h3 {
+            font-size: 1.75rem; /* text-2xl */
+            font-weight: 700;
+            color: #f0f0f0;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .lightbox-content p {
+            font-size: 1rem; /* text-base */
+            color: #b0b0b0;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #f0f0f0;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .lightbox-close:hover {
+            transform: scale(1.1);
+        }
+
+        /* Styling untuk Header Transparan Blur */
+        .header-blur {
+            background-color: rgba(39, 39, 42, 0.7); /* bg-zinc-800 dengan opacity 70% */
+            backdrop-filter: blur(10px); /* Efek blur */
+            -webkit-backdrop-filter: blur(10px); /* Dukungan browser Webkit */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+
+    <header class="w-full py-5 shadow-lg text-center rounded-b-xl mb-8 sticky top-0 z-10 header-blur">
+        <h1 class="text-3xl font-bold text-zinc-100 tracking-tight">FOTO FOTO LITA</h1>
+        <p class="text-base text-zinc-300 mt-2">Koleksi foto</p>
+    </header>
+
+    <main class="w-full px-4 sm:px-6 lg:px-8">
+        <!-- Photo Section 1: Lanskap Pegunungan -->
+        <div class="photo-section" id="photo1">
+            <img src="foto/1.jpeg" alt="Lanskap Pegunungan di Pagi Hari" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Gaya Unik Lita</h2>
+            <p class="text-center" data-parallax-speed="0.25">berpose kontemplatif dengan sentuhan pita pink dan efek piksel artistik.</p>
+        </div>
+
+        <!-- Photo Section 2: Potret Wajah Elegan -->
+        <div class="photo-section" id="photo2">
+            <img src="foto/2.jpeg" alt="Potret Wanita Elegan" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Ekspresi Imut Lita</h2>
+            <p class="text-center" data-parallax-speed="0.25">Foto Lita dengan pose menarik menunjuk pipi, disertai versi anime yang menggemaskan..</p>
+        </div>
+
+        <!-- Photo Section 3: Arsitektur Masa Depan -->
+        <div class="photo-section" id="photo3">
+            <img src="foto/3.jpeg" alt="Gedung Pencakar Langit Modern" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Bebek Imut yang Unik</h2>
+            <p class="text-center" data-parallax-speed="0.25">Seekor anak bebek kuning menggemaskan dengan mata dan bibir manusia, di tengah latar hutan hijau.</p>
+        </div>
+
+        <!-- Photo Section 4: Flora Liar Mekar -->
+        <div class="photo-section" id="photo4">
+            <img src="foto/4.jpeg" alt="Bunga Liar yang Bermekaran" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Lita Berhijab Pink</h2>
+            <p class="text-center" data-parallax-speed="0.25">Potret seorang wanita berhijab pink dengan filter hati yang manis, menciptakan nuansa lembut.</p>
+        </div>
+
+        <!-- Photo Section 5: Kuliner Lezat -->
+        <div class="photo-section" id="photo5">
+            <img src="foto/5.jpeg" alt="Hidangan Penutup Cokelat Mewah" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Gaya Lita Modern</h2>
+            <p class="text-center" data-parallax-speed="0.25">Potret dekat seorang wanita berambut keriting dengan senyuman tipis, dihiasi aksen digital yang unik.</p>
+        </div>
+
+        <!-- Photo Section 6: Kota Malam -->
+        <div class="photo-section" id="photo6">
+            <img src="foto/6.jpeg" alt="Kota di Malam Hari" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Pesona Lita Berhijab</h2>
+            <p class="text-center" data-parallax-speed="0.25">Potret manis Lita dengan hijab pink dan filter hati yang menambah keceriaan.</p>
+        </div>
+
+        <!-- Photo Section 7: Jalan Pedesaan -->
+        <div class="photo-section" id="photo7">
+            <img src="foto/7.jpeg" alt="Jalan Pedesaan yang Tenang" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Ekspresi Lucu yang Menggemaskan</h2>
+            <p class="text-center" data-parallax-speed="0.25">Senyum ceria dengan pose menunjuk pipi, diulang dalam tata letak yang menarik.</p>
+        </div>
+
+        <!-- Photo Section 8: Hewan Liar -->
+        <div class="photo-section" id="photo8">
+            <img src="foto/8.jpeg" alt="Singa di Savana" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Bulan Bermata Manusia</h2>
+            <p class="text-center" data-parallax-speed="0.25">Sebuah kreasi unik bulan dengan fitur wajah manusia di tengah hamparan kosmik.</p>
+        </div>
+
+        <!-- Photo Section 9: Pantai Senja -->
+        <div class="photo-section" id="photo9">
+            <img src="foto/9.jpeg" alt="Pantai Saat Matahari Terbenam" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Bebek Berwajah Manusia</h2>
+            <p class="text-center" data-parallax-speed="0.25">Mahluk kuning menyerupai bebek dengan mata dan senyum khas manusia, menciptakan kesan lucu.</p>
+        </div>
+
+        <!-- Photo Section 10: Ruang Angkasa -->
+        <div class="photo-section" id="photo10">
+            <img src="foto/10.jpeg" alt="Galaksi Bima Sakti" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Keindahan Budaya</h2>
+            <p class="text-center" data-parallax-speed="0.25">Potret seorang wanita dalam balutan busana tradisional yang indah dan elegan.</p>
+        </div>
+
+        <!-- Photo Section 11: Makanan Pencuci Mulut 
+        <div class="photo-section" id="photo11">
+            <img src="https://images.unsplash.com/photo-1551025539-756184a441b0?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="Kue Cokelat yang Menggoda" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <h2 class="font-bold" data-parallax-speed="0.15">Surga Manis</h2>
+            <p class="text-center" data-parallax-speed="0.25">Koleksi makanan penutup yang menggugah selera dan memanjakan lidah.</p>
+        </div> -->
+    </main>
+
+    <footer class="w-full py-4 bg-zinc-800 shadow-inner text-center mt-8 rounded-t-xl">
+        <p class="text-zinc-300">&copy; 2025 Galeri Foto Modern. Dibuat dengan ❤ oleh Gemini.</p>
+    </footer>
+
+    <!-- Lightbox Modal Structure -->
+    <div id="lightbox-modal" class="lightbox-modal">
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightbox-close-btn">&times;</button>
+            <img src="" alt="" id="lightbox-image" class="rounded-xl">
+            <h3 id="lightbox-title" class="font-bold"></h3>
+            <p id="lightbox-description" class="text-center"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const photoSections = document.querySelectorAll('.photo-section');
+            const lightboxModal = document.getElementById('lightbox-modal');
+            const lightboxImage = document.getElementById('lightbox-image');
+            const lightboxTitle = document.getElementById('lightbox-title');
+            const lightboxDescription = document.getElementById('lightbox-description');
+            const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
+
+            // --- Lazy Loading (Sudah diimplementasikan melalui loading="lazy" pada HTML) ---
+            // Browser modern akan otomatis menangani atribut loading="lazy". Tidak diperlukan JS tambahan untuk lazy load dasar.
+
+            // --- Intersection Observer untuk Efek Fade-in ---
+            const observerOptions = {
+                root: null, // Menggunakan viewport sebagai root
+                rootMargin: '0px', // Tanpa margin tambahan
+                threshold: 0.3 // Memicu ketika 30% dari elemen terlihat
+            };
+
+            const observerCallback = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    } else {
+                        // Opsional: hapus kelas is-visible saat tidak terlihat untuk re-animasi saat menggulir kembali
+                        // entry.target.classList.remove('is-visible');
+                    }
+                });
+            };
+
+            const observer = new IntersectionObserver(observerCallback, observerOptions);
+            photoSections.forEach(section => {
+                observer.observe(section);
+            });
+
+            // --- Fungsionalitas Lightbox/Modal ---
+            photoSections.forEach(section => {
+                const img = section.querySelector('img');
+                const title = section.querySelector('h2');
+                const description = section.querySelector('p');
+
+                // Tambahkan event listener untuk membuka modal saat gambar diklik
+                img.addEventListener('click', function() {
+                    lightboxImage.src = img.src;
+                    lightboxImage.alt = img.alt;
+                    lightboxTitle.textContent = title ? title.textContent : img.alt; // Gunakan teks h2 atau alt sebagai fallback
+                    lightboxDescription.textContent = description ? description.textContent : ''; // Gunakan teks p jika tersedia
+                    lightboxModal.classList.add('is-open');
+                });
+            });
+
+            // Tutup modal saat tombol close diklik
+            lightboxCloseBtn.addEventListener('click', function(event) {
+                event.stopPropagation(); // Mencegah event dari mencapai overlay di belakang tombol
+                lightboxModal.classList.remove('is-open');
+            });
+
+            // Tutup modal saat mengklik di luar konten (pada overlay)
+            lightboxModal.addEventListener('click', function() {
+                lightboxModal.classList.remove('is-open');
+            });
+
+            // Mencegah klik di dalam konten modal agar tidak menutup modal
+            lightboxModal.querySelector('.lightbox-content').addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+
+
+            // --- Efek Parallax ---
+            let ticking = false; // Flag untuk mengoptimalkan panggilan requestAnimationFrame
+
+            function applyParallax() {
+                // Iterasi setiap photo-section untuk menerapkan efek parallax
+                photoSections.forEach(section => {
+                    // Dapatkan posisi elemen relatif terhadap viewport
+                    const rect = section.getBoundingClientRect();
+                    const sectionCenter = rect.top + rect.height / 2;
+                    const viewportCenter = window.innerHeight / 2;
+
+                    // Hitung offset berdasarkan seberapa jauh elemen dari tengah viewport
+                    // Semakin jauh dari tengah, semakin besar pergeseran parallax
+                    // Angka negatif pada `offset` berarti elemen berada di bawah tengah viewport
+                    // Angka positif pada `offset` berarti elemen berada di atas tengah viewport
+                    const offset = (viewportCenter - sectionCenter);
+
+                    // Dapatkan elemen gambar dan teks di dalam section ini
+                    const img = section.querySelector('img');
+                    const title = section.querySelector('h2');
+                    const desc = section.querySelector('p');
+
+                    // Terapkan efek parallax ke gambar
+                    if (img) {
+                        // Dapatkan kecepatan parallax dari atribut data-parallax-speed-img, default 0.1
+                        const imgSpeed = parseFloat(img.getAttribute('data-parallax-speed-img') || '0.1');
+                        // Gerakan gambar akan berlawanan arah dengan guliran, memberikan ilusi kedalaman
+                        img.style.transform = `translateY(${offset * imgSpeed}px)`;
+                    }
+                    // Terapkan efek parallax ke judul
+                    if (title) {
+                        const titleSpeed = parseFloat(title.getAttribute('data-parallax-speed') || '0.05');
+                        title.style.transform = `translateY(${offset * titleSpeed}px)`;
+                    }
+                    // Terapkan efek parallax ke deskripsi
+                    if (desc) {
+                        const descSpeed = parseFloat(desc.getAttribute('data-parallax-speed') || '0.08');
+                        desc.style.transform = `translateY(${offset * descSpeed}px)`;
+                    }
+                });
+
+                ticking = false; // Reset flag
+            }
+
+            // Gunakan requestAnimationFrame untuk mengoptimalkan animasi gulir agar lebih halus
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(applyParallax);
+                    ticking = true;
+                }
+            });
+
+            // Panggil applyParallax saat halaman dimuat dan diubah ukurannya
+            // untuk memastikan posisi awal yang benar dan responsif
+            window.addEventListener('load', applyParallax);
+            window.addEventListener('resize', applyParallax);
+            applyParallax(); // Panggil sekali saat DOMContentLoaded untuk posisi awal
+        });
+    </script>
+</body>
+</html>
