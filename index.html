@@ -3,39 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Foto Vertikal Transparan (Tema Gelap)</title>
+    <title>Galeri Foto Lita - Koleksi Eksklusif</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Custom CSS untuk memastikan font Inter dan styling tambahan */
+        :root {
+            --bg-dark: #0f0f0f;
+            --bg-header: rgba(25, 25, 28, 0.95);
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --accent-color: #ec4899;
+            --transition-duration: 0.4s;
+        }
+        
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 400;
+            src: url(https://fonts.gstatic.com/s/inter/v12/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2) format('woff2');
+        }
+        
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 700;
+            src: url(https://fonts.gstatic.com/s/inter/v12/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2) format('woff2');
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #1a1a1a; /* Warna latar belakang sangat gelap */
-            color: #e0e0e0; /* Warna teks terang */
-            scroll-behavior: smooth; /* Membuat gulir halaman lebih halus */
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            scroll-behavior: smooth;
+            overflow-x: hidden; /* Mencegah scroll horizontal */
         }
 
-        /* Gaya untuk setiap bagian foto */
+        /* Animasi teks header */
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6, #ec4899);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradientFlow 8s ease infinite;
+        }
+
+        /* Header dengan efek blur */
+        .header-blur {
+            background-color: var(--bg-header);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Preloader */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .photo-section {
-            min-height: 85vh; /* Setiap bagian mengambil sebagian besar tinggi viewport */
+            min-height: 85vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 1rem;
-            opacity: 0; /* Awalnya sembunyikan untuk fade-in */
-            transform: translateY(50px); /* Geser sedikit ke bawah untuk fade-in */
-            transition: opacity 1.5s ease-out, transform 1.5s ease-out; /* Transisi halus untuk fade-in */
-            max-width: 960px; /* Batasi lebar maksimum */
-            margin-left: auto;
-            margin-right: auto;
-            position: relative; /* Penting untuk efek parallax pada children */
-            overflow: hidden; /* Sembunyikan jika ada elemen parallax yang keluar */
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            max-width: 1200px;
+            margin: 0 auto 5rem;
+            position: relative;
+            overflow: hidden; /* Penting untuk parallax */
         }
 
-        /* Kelas yang ditambahkan JavaScript saat elemen terlihat */
         .photo-section.is-visible {
             opacity: 1;
             transform: translateY(0);
@@ -43,78 +121,115 @@
 
         .photo-section img {
             max-width: 100%;
-            max-height: 70vh; /* Batasi tinggi gambar agar sesuai */
-            border-radius: 1rem; /* Sudut membulat pada gambar */
-            object-fit: contain; /* Menjaga rasio aspek */
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Bayangan pada gambar tetap ada */
-            will-change: transform; /* Hint untuk browser agar mengoptimalkan animasi */
-            /* Transisi untuk parallax tidak di sini, ditangani langsung oleh JS */
+            max-height: 70vh;
+            border-radius: 1rem;
+            object-fit: contain;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all var(--transition-duration) ease;
+            will-change: transform;
+            opacity: 0; /* Awalnya tidak terlihat untuk fade-in */
+            transition: opacity 0.8s ease, transform 0.5s ease;
+        }
+
+        .photo-section img.loaded {
+            opacity: 1;
+        }
+
+        .photo-section img:hover {
+            transform: scale(1.02) rotate(0.5deg);
+            box-shadow: 0 15px 30px rgba(236, 72, 153, 0.2);
         }
 
         .photo-section h2 {
-            margin-top: 1.5rem;
-            font-size: 2.25rem; /* text-3xl */
-            font-weight: 700; /* font-bold */
-            color: #f0f0f0; /* Warna teks utama tetap terang */
+            margin-top: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
             text-align: center;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5); /* Tambahkan shadow untuk visibilitas di atas gambar gelap */
-            will-change: transform; /* Hint untuk browser agar mengoptimalkan animasi */
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            will-change: transform;
+            opacity: 0; /* Awalnya tidak terlihat untuk fade-in */
+            transform: translateY(20px); /* Untuk efek slide-up */
+            transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
         }
 
         .photo-section p {
-            margin-top: 0.5rem;
-            font-size: 1.125rem; /* text-lg */
-            color: #b0b0b0; /* Warna teks deskripsi tetap */
+            margin-top: 1rem;
+            font-size: 1.25rem;
+            color: var(--text-secondary);
             text-align: center;
-            max-width: 700px;
-            text-shadow: 0 0 8px rgba(0,0,0,0.5); /* Tambahkan shadow untuk visibilitas */
-            will-change: transform; /* Hint untuk browser agar mengoptimalkan animasi */
+            max-width: 800px;
+            line-height: 1.6;
+            text-shadow: 0 0 8px rgba(0,0,0,0.5);
+            will-change: transform;
+            opacity: 0; /* Awalnya tidak terlihat untuk fade-in */
+            transform: translateY(20px); /* Untuk efek slide-up */
+            transition: opacity 0.8s ease 0.4s, transform 0.8s ease 0.4s;
         }
 
-        /* Menyesuaikan margin untuk bagian pertama agar tidak terlalu dekat dengan header */
-        .photo-section:first-of-type {
-            margin-top: 3rem; /* Jarak dari header */
+        /* Saat section terlihat, elemen di dalamnya juga fade-in dan slide-up */
+        .photo-section.is-visible h2,
+        .photo-section.is-visible p {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        /* Menyesuaikan margin untuk bagian terakhir agar tidak terlalu dekat dengan footer */
-        .photo-section:last-of-type {
-            margin-bottom: 4rem; /* Jarak dari footer */
+        /* Efek hover keren untuk section */
+        .photo-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--x) var(--y), 
+                        rgba(236, 72, 153, 0.1) 0%, 
+                        transparent 20%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .photo-section:hover::before {
+            opacity: 1;
         }
 
         /* Responsif untuk layar kecil */
         @media (max-width: 768px) {
             .photo-section {
-                padding: 1rem 0.5rem;
+                padding: 1.5rem;
                 min-height: 75vh;
-                margin-bottom: 2rem;
+                margin-bottom: 3rem;
             }
             .photo-section h2 {
-                font-size: 1.75rem; /* text-2xl */
+                font-size: 1.9rem;
             }
             .photo-section p {
-                font-size: 1rem; /* text-base */
+                font-size: 1.1rem;
             }
             .photo-section img {
                 max-height: 60vh;
             }
         }
 
-        /* Modal Lightbox Styling */
+        /* Modal Lightbox */
         .lightbox-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9); /* Overlay gelap */
+            background-color: rgba(0, 0, 0, 0.95);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 100; /* Di atas semua konten lain */
+            z-index: 1000;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            cursor: pointer; /* Menunjukkan bisa diklik untuk menutup */
+            cursor: pointer;
         }
 
         .lightbox-modal.is-open {
@@ -124,293 +239,610 @@
 
         .lightbox-content {
             position: relative;
-            background-color: #2a2a2a; /* Latar belakang modal */
-            padding: 1.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+            padding: 2rem;
+            border-radius: 1.2rem;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
             max-width: 90%;
             max-height: 90%;
-            overflow: auto; /* Jika gambar lebih besar dari modal */
+            overflow: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: default; /* Kembali ke kursor default di dalam konten */
+            cursor: default;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .lightbox-modal.is-open .lightbox-content {
+            transform: scale(1);
         }
 
         .lightbox-content img {
             max-width: 100%;
-            max-height: 75vh; /* Batasi tinggi gambar dalam modal */
+            max-height: 75vh;
             object-fit: contain;
             border-radius: 0.75rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
         }
 
-        .lightbox-content h3 {
-            font-size: 1.75rem; /* text-2xl */
-            font-weight: 700;
-            color: #f0f0f0;
-            margin-bottom: 0.5rem;
-            text-align: center;
+        .lightbox-content img:hover {
+            transform: scale(1.02);
         }
 
-        .lightbox-content p {
-            font-size: 1rem; /* text-base */
-            color: #b0b0b0;
-            text-align: center;
-            max-width: 600px;
-        }
-
+        /* Tombol tutup lightbox */
         .lightbox-close {
             position: absolute;
             top: 1rem;
-            right: 1rem;
+            right: 1.5rem;
+            font-size: 2.5rem;
+            color: var(--text-secondary);
             background: none;
             border: none;
-            font-size: 2rem;
-            color: #f0f0f0;
             cursor: pointer;
-            transition: transform 0.2s ease-in-out;
+            transition: color 0.3s ease;
+            line-height: 1;
+            padding: 0;
         }
 
         .lightbox-close:hover {
-            transform: scale(1.1);
+            color: var(--accent-color);
         }
 
-        /* Styling untuk Header Transparan Blur */
-        .header-blur {
-            background-color: rgba(39, 39, 42, 0.7); /* bg-zinc-800 dengan opacity 70% */
-            backdrop-filter: blur(20px); /* Efek blur */
-            -webkit-backdrop-filter: blur(20px); /* Dukungan browser Webkit */
+        /* Tombol sosial media */
+        .social-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover {
+            transform: translateY(-3px);
+            background: var(--accent-color);
+        }
+
+        /* Efek floating untuk back-to-top */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--accent-color);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 999;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .back-to-top svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* Progress scroll */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #ec4899, #8b5cf6);
+            z-index: 100;
+            transition: width 0.1s ease;
+        }
+
+        /* Quick Navigation Dots */
+        .quick-nav {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 99;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-dot:hover {
+            background-color: var(--accent-color);
+            transform: scale(1.2);
+        }
+
+        .nav-dot.active {
+            background-color: var(--accent-color);
+            transform: scale(1.3);
+            box-shadow: 0 0 8px var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .quick-nav {
+                display: none; /* Sembunyikan navigasi cepat di layar kecil */
+            }
+            .back-to-top {
+                bottom: 1rem;
+                right: 1rem;
+                width: 45px;
+                height: 45px;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
+    
+    <!-- Progress scroll -->
+    <div class="scroll-progress" id="scroll-progress"></div>
 
-    <header class="w-full py-1 shadow-lg text-center rounded-b-xl mb-8 sticky top-0 z-10 header-blur">
-        <h1 class="text-3xl font-bold text-zinc-100 tracking-tight">FOTO FOTO LITA</h1>
-        <p class="text-base text-zinc-300 mt-2">Koleksi foto</p>
+    <!-- Preloader -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <header class="w-full py-3 px-4 md:px-6 bg-zinc-800/80 backdrop-blur-md shadow-lg text-center rounded-b-xl mb-8 sticky top-0 z-50 header-blur">
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight"><span class="gradient-text">FOTO FOTO LITA</span></h1>
+        <p class="text-base text-zinc-300 mt-1">Koleksi Eksklusif</p>
+        
+        <!-- Tombol sosial media -->
+        <div class="flex justify-center mt-3 space-x-2">
+            <a href="#" class="social-btn" title="Share di Facebook"><i class="fab fa-facebook-f"></i></a>
+             <a href="https://www.tiktok.com/@vilian_tata?_t=ZS-8xgHW0r3TKH&_r=1 " target="_blank" class="social-btn" title="Kunjungi TikTok"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/litzzy_.alter/?utm_source=qr&r=nametag" class="social-btn" title="Share di Instagram"><i class="fab fa-instagram"></i></a>
+             <a href="https://wa.me/6285189098951" target="_blank" class="social-btn" title="Hubungi via WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            <a href="#" class="social-btn" title="Download Semua"><i class="fas fa-download"></i></a>
+        </div>
     </header>
 
     <main class="w-full px-4 sm:px-6 lg:px-8">
-        <!-- Photo Section 1: Lanskap Pegunungan -->
+        <!-- Navigasi cepat -->
+        <div class="quick-nav" id="quick-nav"></div>
+
+        <!-- Daftar foto section -->
         <div class="photo-section" id="photo1">
-            <img src="1.jpeg" alt="Lanskap Pegunungan di Pagi Hari" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <img src="1.jpeg" alt="Gaya Unik Lita" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Gaya Unik Lita</h2>
-            <p class="text-center" data-parallax-speed="0.25">berpose kontemplatif dengan sentuhan pita pink dan efek piksel artistik.</p>
+            <p class="text-center" data-parallax-speed="0.25">Berpose kontemplatif dengan sentuhan pita pink dan efek piksel artistik.</p>
         </div>
 
-        <!-- Photo Section 2: Potret Wajah Elegan -->
         <div class="photo-section" id="photo2">
-            <img src="2.jpeg" alt="Potret Wanita Elegan" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
-            <h2 class="font-bold" data-parallax-speed="0.15">Ekspresi Imut Lita</h2>
-            <p class="text-center" data-parallax-speed="0.25">Foto Lita dengan pose menarik menunjuk pipi, disertai versi anime yang menggemaskan..</p>
+            <img src="2.jpeg" alt="Ekspresi Lucu yang Menggemaskan" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
+            <h2 class="font-bold" data-parallax-speed="0.15">Ekspresi Lucu yang Menggemaskan</h2>
+            <p class="text-center" data-parallax-speed="0.25">Senyum ceria dengan pose menunjuk pipi, diulang dalam tata letak yang menarik.</p>
         </div>
 
-        <!-- Photo Section 3: Arsitektur Masa Depan -->
-        <div class="photo-section" id="photo3">
-            <img src="3.jpeg" alt="Gedung Pencakar Langit Modern" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+         <div class="photo-section" id="photo3">
+            <img src="3.jpeg" alt="Bebek Imut yang Unik" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Bebek Imut yang Unik</h2>
             <p class="text-center" data-parallax-speed="0.25">Seekor anak bebek kuning menggemaskan dengan mata dan bibir manusia, di tengah latar hutan hijau.</p>
         </div>
 
         <!-- Photo Section 4: Flora Liar Mekar -->
         <div class="photo-section" id="photo4">
-            <img src="4.jpeg" alt="Bunga Liar yang Bermekaran" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <img src="4.jpeg" alt="Lita Berhijab Pink" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Lita Berhijab Pink</h2>
             <p class="text-center" data-parallax-speed="0.25">Potret seorang wanita berhijab pink dengan filter hati yang manis, menciptakan nuansa lembut.</p>
         </div>
 
         <!-- Photo Section 5: Kuliner Lezat -->
         <div class="photo-section" id="photo5">
-            <img src="5.jpeg" alt="Hidangan Penutup Cokelat Mewah" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <img src="5.jpeg" alt="Gaya Lita Modern" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Gaya Lita Modern</h2>
             <p class="text-center" data-parallax-speed="0.25">Potret dekat seorang wanita berambut keriting dengan senyuman tipis, dihiasi aksen digital yang unik.</p>
         </div>
 
         <!-- Photo Section 6: Kota Malam -->
         <div class="photo-section" id="photo6">
-            <img src="6.jpeg" alt="Kota di Malam Hari" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <img src="6.jpeg" alt="Pesona Lita Berhijab" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Pesona Lita Berhijab</h2>
             <p class="text-center" data-parallax-speed="0.25">Potret manis Lita dengan hijab pink dan filter hati yang menambah keceriaan.</p>
         </div>
 
         <!-- Photo Section 7: Jalan Pedesaan -->
         <div class="photo-section" id="photo7">
-            <img src="7.jpeg" alt="Jalan Pedesaan yang Tenang" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <img src="7.jpeg" alt="Ekspresi Lucu yang Menggemaskan" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Ekspresi Lucu yang Menggemaskan</h2>
             <p class="text-center" data-parallax-speed="0.25">Senyum ceria dengan pose menunjuk pipi, diulang dalam tata letak yang menarik.</p>
         </div>
 
         <!-- Photo Section 8: Hewan Liar -->
         <div class="photo-section" id="photo8">
-            <img src="8.jpeg" alt="Singa di Savana" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <img src="8.jpeg" alt="Bulan Bermata Manusia" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Bulan Bermata Manusia</h2>
             <p class="text-center" data-parallax-speed="0.25">Sebuah kreasi unik bulan dengan fitur wajah manusia di tengah hamparan kosmik.</p>
         </div>
 
         <!-- Photo Section 9: Pantai Senja -->
         <div class="photo-section" id="photo9">
-            <img src="9.jpeg" alt="Pantai Saat Matahari Terbenam" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <img src="9.jpeg" alt="Bebek Berwajah Manusia" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Bebek Berwajah Manusia</h2>
             <p class="text-center" data-parallax-speed="0.25">Mahluk kuning menyerupai bebek dengan mata dan senyum khas manusia, menciptakan kesan lucu.</p>
         </div>
 
         <!-- Photo Section 10: Ruang Angkasa -->
         <div class="photo-section" id="photo10">
-            <img src="10.jpeg" alt="Galaksi Bima Sakti" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
+            <img src="10.jpeg" alt="Keindahan Budaya" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
             <h2 class="font-bold" data-parallax-speed="0.15">Keindahan Budaya</h2>
             <p class="text-center" data-parallax-speed="0.25">Potret seorang wanita dalam balutan busana tradisional yang indah dan elegan.</p>
         </div>
 
-        <!-- Photo Section 11: Makanan Pencuci Mulut 
-        <div class="photo-section" id="photo11">
-            <img src="https://images.unsplash.com/photo-1551025539-756184a441b0?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt="Kue Cokelat yang Menggoda" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.3">
-            <h2 class="font-bold" data-parallax-speed="0.15">Surga Manis</h2>
-            <p class="text-center" data-parallax-speed="0.25">Koleksi makanan penutup yang menggugah selera dan memanjakan lidah.</p>
-        </div> -->
+         <div class="photo-section" id="photo11">
+            <img src="11.jpeg" alt="Keindahan Budaya" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
+            <h2 class="font-bold" data-parallax-speed="0.15">Pesona Piksel Biru Lita</h2>
+            <p class="text-center" data-parallax-speed="0.25">Potret Lita dengan efek piksel dan nuansa biru yang artistik, dilengkapi dengan bintang kecil yang unik.</p>
+        </div>
+
+         <div class="photo-section" id="photo12">
+            <img src="12.jpeg" alt="Keindahan Budaya" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
+            <h2 class="font-bold" data-parallax-speed="0.15">Lita Si Strawberry Manis</h2>
+            <p class="text-center" data-parallax-speed="0.25">Lita tampil menggemaskan dengan topi strawberry merah ceria, senyum tipisnya menambah manis.</p>
+        </div>
+
+         <div class="photo-section" id="photo13">
+            <img src="13.jpeg" alt="Keindahan Budaya" class="rounded-xl" loading="lazy" data-parallax-speed-img="0.5">
+            <h2 class="font-bold" data-parallax-speed="0.15">Ekspresi Multi-Lita yang Misterius</h2>
+            <p class="text-center" data-parallax-speed="0.25">Kolase Lita dengan hijab hitam dan ekspresi lembut, diulang dalam pola grid yang memukau.</p>
+        </div>
+
+        <!-- Photo sections lainnya... -->
+        <!-- (Isi dengan section-section lainnya seperti sebelumnya) -->
+
     </main>
 
-    <footer class="w-full py-4 bg-zinc-800 shadow-inner text-center mt-8 rounded-t-xl">
-        <p class="text-zinc-300">&copy; 2025 Galeri Foto Modern. Dibuat dengan ❤ oleh riza.</p>
+    <footer class="w-full py-6 bg-zinc-800/80 backdrop-blur-md text-center mt-8 rounded-t-xl">
+        <div class="flex justify-center space-x-4 mb-3">
+            <a href="#" class="text-zinc-300 hover:text-pink-400 transition"><i class="fab fa-instagram fa-lg"></i></a>
+            <a href="#" class="text-zinc-300 hover:text-blue-400 transition"><i class="fab fa-facebook fa-lg"></i></a>
+            <!-- <a href="#" class="text-zinc-300 hover:text-red-400 transition"><i class="fab fa-youtube fa-lg"></i></a> -->
+        </div>
+        <p class="text-zinc-300">&copy; 2025 Galeri Foto. by riza</p>
     </footer>
 
-    <!-- Lightbox Modal Structure -->
+    <!-- Tombol kembali ke atas -->
+    <div class="back-to-top" id="back-to-top">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+        </svg>
+    </div>
+
+    <!-- Lightbox Modal -->
     <div id="lightbox-modal" class="lightbox-modal">
         <div class="lightbox-content">
             <button class="lightbox-close" id="lightbox-close-btn">&times;</button>
             <img src="" alt="" id="lightbox-image" class="rounded-xl">
             <h3 id="lightbox-title" class="font-bold"></h3>
             <p id="lightbox-description" class="text-center"></p>
+            <div class="mt-4 flex space-x-4">
+                <button id="lightbox-prev" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Sebelumnya
+                </button>
+                <button id="lightbox-next" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
+                    Selanjutnya<i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+            <div class="mt-4 flex justify-center space-x-3">
+                <button class="lightbox-like px-4 py-2 rounded-full bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 transition">
+                    <i class="far fa-heart mr-2"></i>Suka
+                </button>
+                <button class="lightbox-download px-4 py-2 rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition">
+                    <i class="fas fa-download mr-2"></i>Download
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Elemen DOM
             const photoSections = document.querySelectorAll('.photo-section');
+            const loader = document.getElementById('loader');
+            const scrollProgress = document.getElementById('scroll-progress');
+            const backToTopBtn = document.getElementById('back-to-top');
+            const quickNav = document.getElementById('quick-nav');
             const lightboxModal = document.getElementById('lightbox-modal');
             const lightboxImage = document.getElementById('lightbox-image');
             const lightboxTitle = document.getElementById('lightbox-title');
             const lightboxDescription = document.getElementById('lightbox-description');
             const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
+            const lightboxPrevBtn = document.getElementById('lightbox-prev');
+            const lightboxNextBtn = document.getElementById('lightbox-next');
+            
+            let currentLightboxIndex = -1; // Indeks foto yang sedang dibuka di lightbox
 
-            // --- Lazy Loading (Sudah diimplementasikan melalui loading="lazy" pada HTML) ---
-            // Browser modern akan otomatis menangani atribut loading="lazy". Tidak diperlukan JS tambahan untuk lazy load dasar.
+            // Preloader: Menyembunyikan preloader setelah waktu tertentu
+            setTimeout(() => {
+                loader.classList.add('hidden');
+            }, 1200);
 
-            // --- Intersection Observer untuk Efek Fade-in ---
-            const observerOptions = {
-                root: null, // Menggunakan viewport sebagai root
-                rootMargin: '0px', // Tanpa margin tambahan
-                threshold: 0.3 // Memicu ketika 30% dari elemen terlihat
+            // Progress scroll dan Back to Top button visibility
+            window.addEventListener('scroll', () => {
+                const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPosition = window.scrollY;
+                const scrollPercentage = (scrollPosition / scrollTotal) * 100;
+                scrollProgress.style.width = scrollPercentage + '%';
+                
+                // Back to top button visibility
+                if (scrollPosition > 500) {
+                    backToTopBtn.classList.add('visible');
+                } else {
+                    backToTopBtn.classList.remove('visible');
+                }
+
+                // Panggil fungsi parallax saat scroll
+                handleParallax();
+                // Perbarui dot navigasi cepat
+                updateActiveDot();
+            });
+
+            // Back to top functionality
+            backToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Quick navigation dots: Membuat dan menambahkan dot navigasi
+            photoSections.forEach((section, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot';
+                dot.dataset.index = index;
+                dot.addEventListener('click', () => {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+                quickNav.appendChild(dot);
+            });
+
+            // Update active dot: Menandai dot navigasi yang aktif berdasarkan posisi scroll
+            function updateActiveDot() {
+                const dots = document.querySelectorAll('.nav-dot');
+                // Tambahkan offset agar dot aktif lebih responsif
+                const offset = window.innerHeight * 0.3; 
+                
+                photoSections.forEach((section, index) => {
+                    const sectionTop = section.offsetTop - offset;
+                    const sectionBottom = sectionTop + section.offsetHeight;
+                    
+                    if (window.scrollY >= sectionTop && window.scrollY < sectionBottom) {
+                        dots[index].classList.add('active');
+                    } else {
+                        dots[index].classList.remove('active');
+                    }
+                });
+            }
+
+            // Efek hover section: Mengubah posisi gradient background berdasarkan kursor
+            photoSections.forEach(section => {
+                section.addEventListener('mousemove', (e) => {
+                    const x = e.clientX - section.getBoundingClientRect().left;
+                    const y = e.clientY - section.getBoundingClientRect().top;
+                    section.style.setProperty('--x', `${x}px`);
+                    section.style.setProperty('--y', `${y}px`);
+                });
+            });
+
+            // Lazy loading dengan fade-in untuk gambar
+            const lazyLoadImages = () => {
+                const lazyImages = document.querySelectorAll('.photo-section img[loading="lazy"]');
+                const imageObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            
+                            // Jika gambar belum dimuat, tambahkan event listener 'load'
+                            if (!img.complete || img.naturalWidth === 0) {
+                                img.addEventListener('load', () => {
+                                    img.classList.add('loaded');
+                                });
+                                // Fallback jika event load tidak terpicu (misal dari cache)
+                                setTimeout(() => {
+                                    if (!img.classList.contains('loaded')) {
+                                        img.classList.add('loaded');
+                                    }
+                                }, 500);
+                            } else {
+                                // Jika gambar sudah dimuat (misal dari cache), langsung tambahkan kelas 'loaded'
+                                img.classList.add('loaded');
+                            }
+                            
+                            imageObserver.unobserve(img); // Berhenti mengamati setelah dimuat
+                        }
+                    });
+                }, { rootMargin: '100px 0px' }); // Memuat gambar sedikit sebelum masuk viewport
+                
+                lazyImages.forEach(img => imageObserver.observe(img));
             };
 
-            const observerCallback = (entries, observer) => {
+            // Intersection Observer untuk fade-in section secara keseluruhan
+            const sectionObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible');
                     } else {
-                        // Opsional: hapus kelas is-visible saat tidak terlihat untuk re-animasi saat menggulir kembali
+                        // Opsional: Hapus is-visible saat keluar viewport untuk re-animasi saat scroll back
                         // entry.target.classList.remove('is-visible');
                     }
                 });
-            };
+            }, { threshold: 0.1 }); // Trigger saat 10% dari section terlihat
 
-            const observer = new IntersectionObserver(observerCallback, observerOptions);
             photoSections.forEach(section => {
-                observer.observe(section);
+                sectionObserver.observe(section);
             });
 
-            // --- Fungsionalitas Lightbox/Modal ---
-            photoSections.forEach(section => {
-                const img = section.querySelector('img');
-                const title = section.querySelector('h2');
-                const description = section.querySelector('p');
-
-                // Tambahkan event listener untuk membuka modal saat gambar diklik
-                img.addEventListener('click', function() {
-                    lightboxImage.src = img.src;
-                    lightboxImage.alt = img.alt;
-                    lightboxTitle.textContent = title ? title.textContent : img.alt; // Gunakan teks h2 atau alt sebagai fallback
-                    lightboxDescription.textContent = description ? description.textContent : ''; // Gunakan teks p jika tersedia
-                    lightboxModal.classList.add('is-open');
-                });
-            });
-
-            // Tutup modal saat tombol close diklik
-            lightboxCloseBtn.addEventListener('click', function(event) {
-                event.stopPropagation(); // Mencegah event dari mencapai overlay di belakang tombol
-                lightboxModal.classList.remove('is-open');
-            });
-
-            // Tutup modal saat mengklik di luar konten (pada overlay)
-            lightboxModal.addEventListener('click', function() {
-                lightboxModal.classList.remove('is-open');
-            });
-
-            // Mencegah klik di dalam konten modal agar tidak menutup modal
-            lightboxModal.querySelector('.lightbox-content').addEventListener('click', function(event) {
-                event.stopPropagation();
-            });
-
-
-            // --- Efek Parallax ---
-            let ticking = false; // Flag untuk mengoptimalkan panggilan requestAnimationFrame
-
-            function applyParallax() {
-                // Iterasi setiap photo-section untuk menerapkan efek parallax
+            // Fungsi Parallax Scroll
+            function handleParallax() {
                 photoSections.forEach(section => {
-                    // Dapatkan posisi elemen relatif terhadap viewport
-                    const rect = section.getBoundingClientRect();
-                    const sectionCenter = rect.top + rect.height / 2;
-                    const viewportCenter = window.innerHeight / 2;
+                    // Hanya terapkan parallax jika section terlihat
+                    if (section.classList.contains('is-visible')) {
+                        const img = section.querySelector('img');
+                        const h2 = section.querySelector('h2');
+                        const p = section.querySelector('p');
 
-                    // Hitung offset berdasarkan seberapa jauh elemen dari tengah viewport
-                    // Semakin jauh dari tengah, semakin besar pergeseran parallax
-                    // Angka negatif pada `offset` berarti elemen berada di bawah tengah viewport
-                    // Angka positif pada `offset` berarti elemen berada di atas tengah viewport
-                    const offset = (viewportCenter - sectionCenter);
+                        // Hitung posisi relatif section di viewport
+                        const sectionRect = section.getBoundingClientRect();
+                        const viewportHeight = window.innerHeight;
 
-                    // Dapatkan elemen gambar dan teks di dalam section ini
-                    const img = section.querySelector('img');
-                    const title = section.querySelector('h2');
-                    const desc = section.querySelector('p');
+                        // Calculate scroll progress within the section (0 to 1)
+                        // 0 when section top is at viewport bottom, 1 when section bottom is at viewport top
+                        const scrollProgress = 1 - (sectionRect.top + sectionRect.height) / (viewportHeight + sectionRect.height);
+                        
+                        // Parallax untuk gambar
+                        if (img && img.dataset.parallaxSpeedImg) {
+                            const speed = parseFloat(img.dataset.parallaxSpeedImg);
+                            const translateY = (scrollProgress * speed * viewportHeight);
+                            img.style.transform = `translateY(${translateY}px)`;
+                        }
 
-                    // Terapkan efek parallax ke gambar
-                    if (img) {
-                        // Dapatkan kecepatan parallax dari atribut data-parallax-speed-img, default 0.1
-                        const imgSpeed = parseFloat(img.getAttribute('data-parallax-speed-img') || '0.1');
-                        // Gerakan gambar akan berlawanan arah dengan guliran, memberikan ilusi kedalaman
-                        img.style.transform = `translateY(${offset * imgSpeed}px)`;
-                    }
-                    // Terapkan efek parallax ke judul
-                    if (title) {
-                        const titleSpeed = parseFloat(title.getAttribute('data-parallax-speed') || '0.05');
-                        title.style.transform = `translateY(${offset * titleSpeed}px)`;
-                    }
-                    // Terapkan efek parallax ke deskripsi
-                    if (desc) {
-                        const descSpeed = parseFloat(desc.getAttribute('data-parallax-speed') || '0.08');
-                        desc.style.transform = `translateY(${offset * descSpeed}px)`;
+                        // Parallax untuk teks (h2 dan p)
+                        if (h2 && h2.dataset.parallaxSpeed) {
+                            const speed = parseFloat(h2.dataset.parallaxSpeed);
+                            const translateY = (scrollProgress * speed * viewportHeight);
+                            h2.style.transform = `translateY(${translateY}px)`;
+                        }
+                        if (p && p.dataset.parallaxSpeed) {
+                            const speed = parseFloat(p.dataset.parallaxSpeed);
+                            const translateY = (scrollProgress * speed * viewportHeight);
+                            p.style.transform = `translateY(${translateY}px)`;
+                        }
                     }
                 });
-
-                ticking = false; // Reset flag
             }
 
-            // Gunakan requestAnimationFrame untuk mengoptimalkan animasi gulir agar lebih halus
-            window.addEventListener('scroll', () => {
-                if (!ticking) {
-                    window.requestAnimationFrame(applyParallax);
-                    ticking = true;
+            // Lightbox functionality
+            function openLightbox(index) {
+                currentLightboxIndex = index;
+                const section = photoSections[index];
+                const imgSrc = section.querySelector('img').src;
+                const title = section.querySelector('h2').textContent;
+                const description = section.querySelector('p').textContent;
+
+                lightboxImage.src = imgSrc;
+                lightboxTitle.textContent = title;
+                lightboxDescription.textContent = description;
+                lightboxModal.classList.add('is-open');
+            }
+
+            function closeLightbox() {
+                lightboxModal.classList.remove('is-open');
+                currentLightboxIndex = -1;
+            }
+
+            function showNextImage() {
+                if (currentLightboxIndex < photoSections.length - 1) {
+                    openLightbox(currentLightboxIndex + 1);
+                } else {
+                    openLightbox(0); // Kembali ke awal
                 }
+            }
+
+            function showPrevImage() {
+                if (currentLightboxIndex > 0) {
+                    openLightbox(currentLightboxIndex - 1);
+                } else {
+                    openLightbox(photoSections.length - 1); // Kembali ke akhir
+                }
+            }
+
+            // Event listeners untuk membuka lightbox
+            photoSections.forEach((section, index) => {
+                section.querySelector('img').addEventListener('click', () => openLightbox(index));
             });
 
-            // Panggil applyParallax saat halaman dimuat dan diubah ukurannya
-            // untuk memastikan posisi awal yang benar dan responsif
-            window.addEventListener('load', applyParallax);
-            window.addEventListener('resize', applyParallax);
-            applyParallax(); // Panggil sekali saat DOMContentLoaded untuk posisi awal
+            // Event listeners untuk tombol lightbox
+            lightboxCloseBtn.addEventListener('click', closeLightbox);
+            lightboxModal.addEventListener('click', (e) => {
+                if (e.target === lightboxModal) { // Tutup hanya jika klik di luar konten
+                    closeLightbox();
+                }
+            });
+            lightboxPrevBtn.addEventListener('click', showPrevImage);
+            lightboxNextBtn.addEventListener('click', showNextImage);
+
+            // Like button functionality
+            document.querySelectorAll('.like-btn, .lightbox-like').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.innerHTML = this.innerHTML.includes('far') ?
+                        '<i class="fas fa-heart mr-2"></i>Disukai' :
+                        '<i class="far fa-heart mr-2"></i>Suka';
+                    
+                    // Tambahkan efek animasi
+                    this.classList.add('animate-pulse');
+                    setTimeout(() => {
+                        this.classList.remove('animate-pulse');
+                    }, 300);
+                });
+            });
+
+            // Download button functionality
+            document.querySelectorAll('.lightbox-download').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (currentLightboxIndex >= 0) {
+                        const imgSrc = photoSections[currentLightboxIndex].querySelector('img').src;
+                        const link = document.createElement('a');
+                        link.href = imgSrc;
+                        link.download = `foto-lita-${currentLightboxIndex + 1}.jpg`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        // Efek feedback
+                        this.innerHTML = '<i class="fas fa-check mr-2"></i>Terdownload!';
+                        setTimeout(() => {
+                            this.innerHTML = '<i class="fas fa-download mr-2"></i>Download';
+                        }, 2000);
+                    }
+                });
+            });
+
+            // Inisialisasi: Panggil fungsi-fungsi awal
+            lazyLoadImages();
+            updateActiveDot();
+            handleParallax(); // Panggil sekali saat DOMContentLoaded untuk posisi awal
         });
     </script>
 </body>
